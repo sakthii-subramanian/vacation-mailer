@@ -1,0 +1,17 @@
+{
+  "name": "vacation-mailer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "google-auth-library": "9.2",
+    "googleapis": "^39.0.0",
+    "node-schedule": "^2.0.0",
+    "readline-promise": "^1.0.5"
+  }
+}
