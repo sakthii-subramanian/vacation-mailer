@@ -22,16 +22,25 @@ const getMessageDetails = async (gmail, messageId) => {
 };
 
 // Function to create a label
-const createLabel = async (gmail, labelName) => {
-    return await gmail.users.labels.create({
-        userId: 'me',
-        requestBody: {
-            name: labelName,
-            messageListVisibility: 'show',
-            labelListVisibility: 'labelShow',
-        },
-    });
-};
+async function createLabel(gmail, labelName) {
+    try {
+        const createLabelResponse = await gmail.users.labels.create({
+            userId: 'me',
+            requestBody: {
+                name: labelName,
+                messageListVisibility: 'show',
+                labelListVisibility: 'labelShow',
+            },
+        });
+
+        const label = createLabelResponse.data;
+        console.log(`Label created: ${label.name}, ID: ${label.id}`);
+        return label;
+    } catch (error) {
+        console.error('Error creating label:', error);
+        throw error;
+    }
+}
 
 // Function to list labels
 const listLabels = async (gmail) => {
@@ -79,20 +88,22 @@ const getSenderEmailAddress = async (emailDetails) => {
 }
 
 // Function to make body of mail
-const makeBody = (to, from, subject, message) => {
-    var str = ["Content-Type: text/plain; charset=\"UTF-8\"\n",
-        "MIME-Version: 1.0\n",
-        "Content-Transfer-Encoding: 7bit\n",
-        "to: ", to, "\n",
-        "from: ", from, "\n",
-        "subject: ", subject, "\n\n",
-        message
+const makeBody = (to, from, subject, message,threadId) => {
+    var str = [
+        `Content-Type: text/plain; charset="UTF-8"\n`,
+        `MIME-Version: 1.0\n`,
+        `Content-Transfer-Encoding: 7bit\n`,
+        `to: ${to}\n`,
+        `from: ${from}\n`,
+        `subject: ${subject}\n`,
+        `In-Reply-To: ${threadId}\n`,
+        `References: ${threadId}\n\n`,
+        message,
     ].join('');
 
-    var encodedMail = new Buffer(str).toString("base64").replace(/\+/g, '-').replace(/\//g, '_');
+    var encodedMail = Buffer.from(str).toString('base64').replace(/\+/g, '-').replace(/\//g, '_');
     return encodedMail;
 }
-
 
 module.exports = {
     listUnreadMessages,

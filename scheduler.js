@@ -22,6 +22,19 @@ const processEmails = async (gmail) => {
     try {
         const messages = await listUnreadMessages(gmail);
 
+        // Add labels to the email
+        const labelsResponse = await gmail.users.labels.list({
+            userId: 'me',
+        });
+        const labels = labelsResponse.data.labels;
+        var attentionLabel = labels.find((label) => label.name === 'attentionrequired');
+        
+        // If the label doesn't exist, create it
+        if (!attentionLabel) {
+            attentionLabel= await createLabel(gmail,'attentionrequired')
+            console.log(`Label created with ID: ${attentionLabel.id}`)
+        }
+
         if (messages.length > 0) {
             console.log('unread count:', messages.length);
 
@@ -40,7 +53,7 @@ const processEmails = async (gmail) => {
                         var senderEmail = await getSenderEmailAddress(emailDetails)
 
                         if (senderEmail) {
-                            var raw = makeBody(senderEmail, 'sakthi.subramanian.24@gmail.com', 'OUT OF OFFICE', 'Hey, I am vacation. wil get back to you in 2 days.Sorry for the delay.\nRegards,\nSakthi');
+                            var raw = makeBody(senderEmail, 'sakthi.subramanian.24@gmail.com', 'OUT OF OFFICE', 'Hey, I am vacation. wil get back to you in 2 days.Sorry for the delay.\nRegards,\nSakthi', emailDetails.data.threadId);
                             // Send a reply
                             await gmail.users.messages.send({
                                 userId: 'me',
@@ -51,21 +64,6 @@ const processEmails = async (gmail) => {
                             });
                             // Push messageid to array
                             repliedOnce.push(messageId)
-                        }
-
-
-                        // Add labels to the email
-                        const labelsResponse = await gmail.users.labels.list({
-                            userId: 'me',
-                        });
-
-                        const labels = labelsResponse.data.labels;
-                        var attentionLabel = labels.find((label) => label.name === 'attentionrequired');
-
-                        // If the label doesn't exist, create it
-                        if (!attentionLabel) {
-                            const createLabelResponse = createLabel(gmail, 'attentionrequired')
-                            attentionLabel = createLabelResponse.data;
                         }
 
                         await modifyMessage(gmail, messageId, [attentionLabel.id], ['INBOX'])
@@ -88,4 +86,5 @@ const processEmails = async (gmail) => {
 
 module.exports = {
     scheduleProcessEmails,
+    processEmails
 };
